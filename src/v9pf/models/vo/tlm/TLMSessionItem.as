@@ -14,7 +14,7 @@ package v9pf.models.vo.tlm
 		{
 			super(amf);
 			name = amf.name;
-			value = (amf.value is Object && typeof amf.value == "object") ? TLMFactory.create(amf.value) : amf.value;
+			value = (amf.value is Object && amf.value.hasOwnProperty("__className")) ? TLMFactory.create(amf.value) : amf.value;
 		}
 		
 		public override function toString():String {

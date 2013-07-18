@@ -110,6 +110,9 @@ package v9pf.models.vo
 			var tlm:TLMSessionItem = TLMFactory.create(obj) as TLMSessionItem;
 			if (tlm != null) {
 				timeEndCurrent += (obj.delta != undefined) ? obj.delta : 0;
+				if ((tlm.type == TLM.TIME && tlm.name == ".enter") || (tlm.type == TLM.SPAN && tlm.name == ".exit")) {
+					return;
+				}
 				tlm.timeTotal = (obj.span != undefined) ? obj.span : 0;
 				tlm.timeBegin = timeEndCurrent - tlm.timeTotal;
 				tlm.timeEnd = timeEndCurrent;

@@ -23,6 +23,7 @@ package v9pf.models.vo
 		protected var timeEndCurrent:Number;
 		
 		protected var sessionItems:Vector.<TLMSessionItem>;
+		protected var frameIndices:Vector.<uint>;
 		
 		public function ClientSession(socket:Socket = null)
 		{
@@ -34,6 +35,7 @@ package v9pf.models.vo
 			timeEndCurrent = 0;
 			
 			sessionItems = new Vector.<TLMSessionItem>();
+			frameIndices = new Vector.<uint>();
 
 			addListeners();
 		}
@@ -110,29 +112,37 @@ package v9pf.models.vo
 			var tlm:TLMSessionItem = TLMFactory.create(obj) as TLMSessionItem;
 			if (tlm != null) {
 				timeEndCurrent += (obj.delta != undefined) ? obj.delta : 0;
-				if ((tlm.type == TLM.TIME && tlm.name == ".enter") || (tlm.type == TLM.SPAN && tlm.name == ".exit")) {
-					return;
-				}
 				tlm.timeTotal = (obj.span != undefined) ? obj.span : 0;
 				tlm.timeBegin = timeEndCurrent - tlm.timeTotal;
 				tlm.timeEnd = timeEndCurrent;
-				if (sessionItems.length > 0) {
-					for (var i:int = sessionItems.length - 1; i >= 0; i--) {
-						if (sessionItems[i].timeBegin <= tlm.timeBegin) {
-							if (i == sessionItems.length - 1) {
-								sessionItems.push(tlm);
-							} else {
-								sessionItems.splice(i + 1, 0, tlm);
-							}
-							break;
-						}
-					}
-				} else {
-					sessionItems.push(tlm);
-				}
+				addItem(tlm);
 				trace(tlm);
 			} else {
 				trace("Unable to create session item: " + JSON.stringify(obj));
+			}
+		}
+		
+		protected function addItem(tlm:TLMSessionItem):void
+		{
+			if ((tlm.type == TLM.TIME && tlm.name == ".enter") || (tlm.type == TLM.SPAN && tlm.name == ".exit")) {
+				return;
+			}
+			if (tlm.type == TLM.VALUE && tlm.name == ".swf.frame") {
+				frameIndices.push(sessionItems.length);
+			}
+			if (sessionItems.length > 0) {
+				for (var i:int = sessionItems.length - 1; i >= 0; i--) {
+					if (sessionItems[i].timeBegin <= tlm.timeBegin) {
+						if (i == sessionItems.length - 1) {
+							sessionItems.push(tlm);
+						} else {
+							sessionItems.splice(i + 1, 0, tlm);
+						}
+						break;
+					}
+				}
+			} else {
+				sessionItems.push(tlm);
 			}
 		}
 	}

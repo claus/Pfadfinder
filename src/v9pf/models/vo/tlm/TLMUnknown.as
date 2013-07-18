@@ -11,5 +11,9 @@ package v9pf.models.vo.tlm
 		}
 		
 		public override function get type():String { return TLM.UNKNOWN; }
+
+		public override function toString():String {
+			return "[" + type + "] " + JSON.stringify(data);
+		}
 	}
 }

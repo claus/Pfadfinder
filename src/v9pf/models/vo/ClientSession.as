@@ -111,8 +111,22 @@ package v9pf.models.vo
 			if (tlm != null) {
 				timeEndCurrent += (obj.delta != undefined) ? obj.delta : 0;
 				tlm.timeTotal = (obj.span != undefined) ? obj.span : 0;
-				tlm.timeEnd = timeEndCurrent;
 				tlm.timeBegin = timeEndCurrent - tlm.timeTotal;
+				tlm.timeEnd = timeEndCurrent;
+				if (sessionItems.length > 0) {
+					for (var i:int = sessionItems.length - 1; i >= 0; i--) {
+						if (sessionItems[i].timeBegin <= tlm.timeBegin) {
+							if (i == sessionItems.length - 1) {
+								sessionItems.push(tlm);
+							} else {
+								sessionItems.splice(i + 1, 0, tlm);
+							}
+							break;
+						}
+					}
+				} else {
+					sessionItems.push(tlm);
+				}
 				trace(tlm);
 			} else {
 				trace("Unable to create session item: " + JSON.stringify(obj));

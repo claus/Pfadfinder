@@ -374,11 +374,11 @@ package com.coursevector.amf {
 				var key:String;
 				
 				for(var j:int = 0; j < l; ++j) {
-					if(ba.readByte() == 119) trace("asdfasdf");
-					ba.position--;
+					//if(ba.readByte() == 119) trace("asdfasdf");
+					//ba.position--;
 					
-					var pos:uint = ba.position;
-					if (pos == 275) trace('sdfd');
+					//var pos:uint = ba.position;
+					//if (pos == 275) trace('sdfd');
 					var val:* = readData(ba);
 					key = traits.members[j];
 					obj[key] = val;

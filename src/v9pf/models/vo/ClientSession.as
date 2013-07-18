@@ -8,6 +8,10 @@ package v9pf.models.vo
 	import flash.events.ProgressEvent;
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
+	
+	import v9pf.models.vo.tlm.TLM;
+	import v9pf.models.vo.tlm.TLMFactory;
+	import v9pf.models.vo.tlm.TLMSessionItem;
 
 	public class ClientSession extends EventDispatcher
 	{
@@ -16,6 +20,9 @@ package v9pf.models.vo
 		protected var amf3:AMF3;
 		
 		protected var lastPos:uint;
+		protected var timeEndCurrent:Number;
+		
+		protected var sessionItems:Vector.<TLMSessionItem>;
 		
 		public function ClientSession(socket:Socket = null)
 		{
@@ -24,6 +31,9 @@ package v9pf.models.vo
 			bytes = new ByteArray();
 			amf3 = new AMF3();
 			lastPos = 0;
+			timeEndCurrent = 0;
+			
+			sessionItems = new Vector.<TLMSessionItem>();
 
 			addListeners();
 		}
@@ -90,16 +100,23 @@ package v9pf.models.vo
 			}
 			catch(e:Error) {
 				if (e.errorID != 2030) {
-					trace("#########################");
 					trace(e);
-					trace("#########################");
 				}
 			}
 		}
 		
 		protected function processObject(obj:Object):void
 		{
-			trace(JSON.stringify(obj));
+			var tlm:TLMSessionItem = TLMFactory.create(obj) as TLMSessionItem;
+			if (tlm != null) {
+				timeEndCurrent += (obj.delta != undefined) ? obj.delta : 0;
+				tlm.timeTotal = (obj.span != undefined) ? obj.span : 0;
+				tlm.timeEnd = timeEndCurrent;
+				tlm.timeBegin = timeEndCurrent - tlm.timeTotal;
+				trace(tlm);
+			} else {
+				trace("Unable to create session item: " + JSON.stringify(obj));
+			}
 		}
 	}
 }

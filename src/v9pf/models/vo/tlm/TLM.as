@@ -11,6 +11,7 @@ package v9pf.models.vo.tlm
 
 		public static const RECT:String = ".rect";
 		public static const REGION:String = ".region";
+		public static const SAMPLER_SAMPLE:String = "Sampler_sample";
 		
 		private var _type:String;
 		

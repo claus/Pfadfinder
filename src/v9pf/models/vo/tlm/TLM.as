@@ -12,6 +12,8 @@ package v9pf.models.vo.tlm
 		public static const RECT:String = ".rect";
 		public static const REGION:String = ".region";
 		public static const SAMPLER_SAMPLE:String = "Sampler_sample";
+		public static const MEMORY_OBJECTALLOCATION:String = ".memory.objectAllocation";
+		public static const MEMORY_DEALLOCATION:String = ".memory.deallocation";
 		
 		private var _type:String;
 		

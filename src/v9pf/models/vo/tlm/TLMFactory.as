@@ -23,6 +23,12 @@ package v9pf.models.vo.tlm
 					case TLM.SAMPLER_SAMPLE:
 						tlm = new TLMSamplerSample(amf);
 						break;
+					case TLM.MEMORY_OBJECTALLOCATION:
+						tlm = new TLMMemoryObjectAllocation(amf);
+						break;
+					case TLM.MEMORY_DEALLOCATION:
+						tlm = new TLMMemoryDeallocation(amf);
+						break;
 					default:
 						tlm = new TLMUnknown(amf);
 						break;

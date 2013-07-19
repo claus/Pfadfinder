@@ -49,6 +49,7 @@ package v9pf.views
 			addChild(lblFileName);
 			
 			btnLoadFLM = new Button();
+			btnLoadFLM.addEventListener(MouseEvent.CLICK, btnLoadFLMClickHandler, false, 0, true);
 			setButtonStyles(btnLoadFLM);
 			btnLoadFLM.label = "Load Telemetry File";
 			btnLoadFLM.drawNow();
@@ -63,6 +64,11 @@ package v9pf.views
 			addChild(btnSocket);
 		}
 		
+		protected function btnLoadFLMClickHandler(event:MouseEvent):void
+		{
+			dispatchEvent(new HeaderViewEvent(HeaderViewEvent.LOAD_BTN_CLICK));
+		}
+
 		protected function btnSocketChangeHandler(event:Event):void
 		{
 			dispatchEvent(new HeaderViewEvent(HeaderViewEvent.SOCKET_BTN_TOGGLE, { selected: btnSocket.selected }));

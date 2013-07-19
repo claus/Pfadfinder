@@ -65,7 +65,13 @@ package v9pf.models.vo
 		{
 			return _socket;
 		}
-		
+
+		public function writeBytes(ba:ByteArray):void
+		{
+			bytes.writeBytes(ba);
+			processBytes();
+		}
+
 		public function close():void
 		{
 			try {

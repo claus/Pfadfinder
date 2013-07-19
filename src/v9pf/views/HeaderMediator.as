@@ -3,6 +3,7 @@ package v9pf.views
 	import org.robotlegs.mvcs.Mediator;
 	
 	import v9pf.events.ServerSocketEvent;
+	import v9pf.events.TelemetryFileEvent;
 	import v9pf.views.events.HeaderViewEvent;
 
 	public class HeaderMediator extends Mediator
@@ -17,25 +18,20 @@ package v9pf.views
 		
 		override public function onRegister():void
 		{
+			addViewListener(HeaderViewEvent.LOAD_BTN_CLICK, loadBtnClickHandler, HeaderViewEvent);
 			addViewListener(HeaderViewEvent.SOCKET_BTN_TOGGLE, socketBtnToggleHandler, HeaderViewEvent);
 		}
 		
 		override public function onRemove():void
 		{
+			removeViewListener(HeaderViewEvent.LOAD_BTN_CLICK, loadBtnClickHandler, HeaderViewEvent);
 			removeViewListener(HeaderViewEvent.SOCKET_BTN_TOGGLE, socketBtnToggleHandler, HeaderViewEvent);
 		}
 
-		/*
-		private function btnLoadSWFClickHandler(event:MouseEvent):void
+		protected function loadBtnClickHandler(event:HeaderViewEvent):void
 		{
-			var ref:FileReference = new FileReference();
-			ref.addEventListener(Event.SELECT, function(e:Event):void { ref.load(); });
-			ref.addEventListener(Event.COMPLETE, function(e:Event):void {
-				dispatch(new SWFEvent(SWFEvent.LOAD, ref.name, ref.data));
-			});
-			ref.browse([new FileFilter("SWF (*.swf)", "*.swf"), new FileFilter("SWC (*.swc)", "*.swc")]);
+			dispatch(new TelemetryFileEvent(TelemetryFileEvent.LOAD));
 		}
-		*/
 		
 		protected function socketBtnToggleHandler(event:HeaderViewEvent):void
 		{

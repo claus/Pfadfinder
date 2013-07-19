@@ -4,6 +4,7 @@ package v9pf.views.events
 	
 	public class HeaderViewEvent extends Event
 	{
+		public static const LOAD_BTN_CLICK:String = "HeaderViewEvent_LOAD_BTN_CLICK";
 		public static const SOCKET_BTN_TOGGLE:String = "HeaderViewEvent_SOCKET_BTN_TOGGLE";
 		
 		public var data:Object;

@@ -55,8 +55,9 @@ package v9pf.models.vo
 		public function getSessionItems(frameNr:uint):Vector.<TLMSessionItem>
 		{
 			if (frameNr < frameIndices.length) {
-				var endIdx:uint = (frameNr + 1 < frameIndices.length) ? frameIndices[frameNr + 1] : sessionItems.length;
-				return sessionItems.slice(frameIndices[frameNr], endIdx);
+				var startIdx:uint = (frameNr > 0) ? frameIndices[frameNr - 1] : 0;
+				var endIdx:uint = frameIndices[frameNr];
+				return sessionItems.slice(startIdx, endIdx);
 			}
 			return new Vector.<TLMSessionItem>();
 		}

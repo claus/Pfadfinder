@@ -6,14 +6,19 @@ package v9pf.models
 	
 	public class ClientSessionProxy extends Actor
 	{
-		protected var sessions:Array;
+		protected var _sessions:Array;
 		
 		public function ClientSessionProxy()
 		{
 			super();
-			sessions = [];
+			_sessions = [];
 		}
 		
+		public function get sessions():Array
+		{
+			return _sessions;
+		}
+
 		public function register(session:ClientSession):void
 		{
 			sessions.unshift(session);

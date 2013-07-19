@@ -1,19 +1,16 @@
 package v9pf.services
 {
-	import flash.errors.IOError;
 	import flash.events.Event;
-	import flash.events.IOErrorEvent;
-	import flash.events.ProgressEvent;
 	import flash.events.ServerSocketConnectEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	import flash.net.ServerSocket;
 	import flash.net.Socket;
-	import flash.utils.ByteArray;
 	
 	import org.robotlegs.mvcs.Actor;
 	
+	import v9pf.events.ClientSessionEvent;
 	import v9pf.models.vo.ClientSession;
 	
 	public class SocketService extends Actor
@@ -52,6 +49,7 @@ package v9pf.services
 		{
 			trace("SocketService STOP SOCKET");
 			if (serverSocket) {
+				removeAllClientSessions();
 				serverSocket.close();
 				serverSocket.removeEventListener(ServerSocketConnectEvent.CONNECT, connectHandler); 
 				serverSocket.removeEventListener(Event.CLOSE, closeHandler); 
@@ -65,13 +63,48 @@ package v9pf.services
 			trace("SocketService - client connected");
 			var socket:Socket = event.socket as Socket;
 			var session:ClientSession = new ClientSession(socket);
+			session.addEventListener(ClientSessionEvent.NEW_FRAME, sessionNewFrameHandler);
+			session.addEventListener(ClientSessionEvent.CLOSED, sessionClosedHandler);
 			sessions.push(session);
 		} 
 		
 		private function closeHandler(event:Event):void 
 		{ 
 			trace("SocketService - socket closed by OS");
-			//removeClient(event.target as Socket);
+			removeAllClientSessions();
+		}
+		
+		private function sessionNewFrameHandler(event:ClientSessionEvent):void
+		{
+			trace("SocketService - first frame received from client");
+			dispatch(new ClientSessionEvent(ClientSessionEvent.REGISTER, event.session));
+			event.session.removeEventListener(ClientSessionEvent.NEW_FRAME, sessionNewFrameHandler);
+		}
+
+		private function sessionClosedHandler(event:ClientSessionEvent):void
+		{
+			trace("SocketService - client disconnected");
+			removeClientSession(event.session);
+		}
+		
+		private function removeClientSession(session:ClientSession):void
+		{
+			var i:uint = sessions.indexOf(session);
+			if (i > -1) {
+				session.removeEventListener(ClientSessionEvent.NEW_FRAME, sessionNewFrameHandler);
+				session.removeEventListener(ClientSessionEvent.CLOSED, sessionClosedHandler);
+				sessions.splice(i, 1);
+				trace("SocketService - client removed");
+			}
+		}
+
+		private function removeAllClientSessions():void
+		{
+			while (sessions.length > 0) {
+				sessions[0].close();
+				trace("SocketService - client disconnected");
+				removeClientSession(sessions[0]);
+			}
 		}
 		
 		private function writeConf():Boolean

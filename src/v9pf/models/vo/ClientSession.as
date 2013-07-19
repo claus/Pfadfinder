@@ -9,13 +9,15 @@ package v9pf.models.vo
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
 	
+	import v9pf.events.ClientSessionEvent;
 	import v9pf.models.vo.tlm.TLM;
 	import v9pf.models.vo.tlm.TLMFactory;
 	import v9pf.models.vo.tlm.TLMSessionItem;
 
 	public class ClientSession extends EventDispatcher
 	{
-		protected var socket:Socket;
+		protected var _socket:Socket;
+		
 		protected var bytes:ByteArray;
 		protected var amf3:AMF3;
 		
@@ -27,7 +29,7 @@ package v9pf.models.vo
 		
 		public function ClientSession(socket:Socket = null)
 		{
-			this.socket = socket;
+			_socket = socket;
 			
 			bytes = new ByteArray();
 			amf3 = new AMF3();
@@ -45,6 +47,25 @@ package v9pf.models.vo
 			return (socket && socket.connected);
 		}
 
+		public function get numFrames():uint
+		{
+			return frameIndices.length;
+		}
+		
+		public function getSessionItems(frameNr:uint):Vector.<TLMSessionItem>
+		{
+			if (frameNr < frameIndices.length) {
+				var endIdx:uint = (frameNr + 1 < frameIndices.length) ? frameIndices[frameNr + 1] : sessionItems.length;
+				return sessionItems.slice(frameIndices[frameNr], endIdx);
+			}
+			return new Vector.<TLMSessionItem>();
+		}
+		
+		public function get socket():Socket
+		{
+			return _socket;
+		}
+		
 		public function close():void
 		{
 			try {
@@ -53,7 +74,7 @@ package v9pf.models.vo
 			}
 			catch (e:Error) {
 			}
-			socket = null;
+			_socket = null;
 		}
 		
 		protected function addListeners():void
@@ -83,11 +104,13 @@ package v9pf.models.vo
 		protected function socketCloseHandler(event:Event):void
 		{
 			close();
+			dispatchEvent(new ClientSessionEvent(ClientSessionEvent.CLOSED, this));
 		}
 		
 		protected function socketIOError(event:IOErrorEvent):void
 		{
 			close();
+			dispatchEvent(new ClientSessionEvent(ClientSessionEvent.CLOSED, this));
 		}
 		
 		protected function processBytes():void
@@ -116,7 +139,7 @@ package v9pf.models.vo
 				tlm.timeBegin = timeEndCurrent - tlm.timeTotal;
 				tlm.timeEnd = timeEndCurrent;
 				addItem(tlm);
-				trace(tlm);
+				//trace(tlm);
 			} else {
 				trace("Unable to create session item: " + JSON.stringify(obj));
 			}
@@ -124,11 +147,13 @@ package v9pf.models.vo
 		
 		protected function addItem(tlm:TLMSessionItem):void
 		{
+			// ignore .enter and .exit items (until i figure out what they're good for)
 			if ((tlm.type == TLM.TIME && tlm.name == ".enter") || (tlm.type == TLM.SPAN && tlm.name == ".exit")) {
 				return;
 			}
+			// .value .swf.frame indicates that a new frame starts
 			if (tlm.type == TLM.VALUE && tlm.name == ".swf.frame") {
-				frameIndices.push(sessionItems.length);
+				newFrame();
 			}
 			if (sessionItems.length > 0) {
 				for (var i:int = sessionItems.length - 1; i >= 0; i--) {
@@ -144,6 +169,13 @@ package v9pf.models.vo
 			} else {
 				sessionItems.push(tlm);
 			}
+		}
+		
+		protected function newFrame():void
+		{
+			frameIndices.push(sessionItems.length);
+			dispatchEvent(new ClientSessionEvent(ClientSessionEvent.NEW_FRAME, this));
+			//trace(sessionItems.slice(frameIndices.length > 1 ? frameIndices[frameIndices.length - 2] : 0).join("\n"));
 		}
 	}
 }

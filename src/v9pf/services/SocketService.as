@@ -12,6 +12,7 @@ package v9pf.services
 	
 	import v9pf.events.ClientSessionEvent;
 	import v9pf.models.vo.ClientSession;
+	import v9pf.models.vo.ClientSessionMetadata;
 	
 	public class SocketService extends Actor
 	{
@@ -33,9 +34,9 @@ package v9pf.services
 			if (writeConf()) {
 				try {
 					serverSocket = new ServerSocket(); 
+					serverSocket.bind(7934, "127.0.0.1"); 
 					serverSocket.addEventListener(ServerSocketConnectEvent.CONNECT, connectHandler); 
 					serverSocket.addEventListener(Event.CLOSE, closeHandler); 
-					serverSocket.bind(7934, "127.0.0.1"); 
 					serverSocket.listen(); 
 				}
 				catch (e:Error) {
@@ -49,11 +50,17 @@ package v9pf.services
 		{
 			trace("SocketService STOP SOCKET");
 			if (serverSocket) {
-				removeAllClientSessions();
-				serverSocket.close();
-				serverSocket.removeEventListener(ServerSocketConnectEvent.CONNECT, connectHandler); 
-				serverSocket.removeEventListener(Event.CLOSE, closeHandler); 
-				serverSocket = null;
+				try {
+					removeAllClientSessions();
+					serverSocket.close();
+					serverSocket.removeEventListener(ServerSocketConnectEvent.CONNECT, connectHandler); 
+					serverSocket.removeEventListener(Event.CLOSE, closeHandler); 
+					serverSocket = null;
+				}
+				catch (e:Error) {
+					trace("SocketService STOP SOCKET failed:");
+					trace(e);
+				}
 			}
 			deleteConf();
 		}
@@ -62,8 +69,8 @@ package v9pf.services
 		{ 
 			trace("SocketService - client connected");
 			var socket:Socket = event.socket as Socket;
-			var session:ClientSession = new ClientSession(socket);
-			session.addEventListener(ClientSessionEvent.NEW_FRAME, sessionNewFrameHandler);
+			var session:ClientSession = new ClientSession(new ClientSessionMetadata(), socket);
+			session.addEventListener(ClientSessionEvent.RECEIVED_FRAME, sessionNewFrameHandler);
 			session.addEventListener(ClientSessionEvent.CLOSED, sessionClosedHandler);
 			sessions.push(session);
 		} 
@@ -78,7 +85,7 @@ package v9pf.services
 		{
 			trace("SocketService - first frame received from client");
 			dispatch(new ClientSessionEvent(ClientSessionEvent.REGISTER, event.session));
-			event.session.removeEventListener(ClientSessionEvent.NEW_FRAME, sessionNewFrameHandler);
+			event.session.removeEventListener(ClientSessionEvent.RECEIVED_FRAME, sessionNewFrameHandler);
 		}
 
 		private function sessionClosedHandler(event:ClientSessionEvent):void
@@ -91,7 +98,10 @@ package v9pf.services
 		{
 			var i:uint = sessions.indexOf(session);
 			if (i > -1) {
-				session.removeEventListener(ClientSessionEvent.NEW_FRAME, sessionNewFrameHandler);
+				if (session.numFrames > 0) {
+					dispatch(new ClientSessionEvent(ClientSessionEvent.SAVE_FILE, session));
+				}
+				session.removeEventListener(ClientSessionEvent.RECEIVED_FRAME, sessionNewFrameHandler);
 				session.removeEventListener(ClientSessionEvent.CLOSED, sessionClosedHandler);
 				sessions.splice(i, 1);
 				trace("SocketService - client removed");
@@ -101,9 +111,9 @@ package v9pf.services
 		private function removeAllClientSessions():void
 		{
 			while (sessions.length > 0) {
-				sessions[0].close();
-				trace("SocketService - client disconnected");
-				removeClientSession(sessions[0]);
+				var session:ClientSession = sessions[0];
+				session.close();
+				removeClientSession(session);
 			}
 		}
 		
@@ -126,6 +136,8 @@ package v9pf.services
 				fs.close();
 			}
 			catch (e:Error) {
+				trace("SocketService - writing .telemetry.cfg failed:");
+				trace(e);
 				return false;
 			}
 			return true;
@@ -139,6 +151,8 @@ package v9pf.services
 					file.deleteFile();
 				}
 				catch (e:Error) {
+					trace("SocketService - removing .telemetry.cfg failed:");
+					trace(e);
 					return false;
 				}
 			}

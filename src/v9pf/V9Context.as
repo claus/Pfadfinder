@@ -4,13 +4,14 @@ package v9pf
 	
 	import org.robotlegs.mvcs.Context;
 	
+	import v9pf.commands.ClientSessionFileLoadCommand;
+	import v9pf.commands.ClientSessionFileSaveCommand;
+	import v9pf.commands.ClientSessionFileSelectCommand;
 	import v9pf.commands.ClientSessionRegisterCommand;
 	import v9pf.commands.ServerSocketStartCommand;
 	import v9pf.commands.ServerSocketStopCommand;
-	import v9pf.commands.TelemetryFileLoadCommand;
 	import v9pf.events.ClientSessionEvent;
 	import v9pf.events.ServerSocketEvent;
-	import v9pf.events.TelemetryFileEvent;
 	import v9pf.models.ClientSessionProxy;
 	import v9pf.services.SocketService;
 	import v9pf.services.TelemetryFileService;
@@ -31,7 +32,9 @@ package v9pf
 			commandMap.mapEvent(ServerSocketEvent.START, ServerSocketStartCommand, ServerSocketEvent);
 			commandMap.mapEvent(ServerSocketEvent.STOP, ServerSocketStopCommand, ServerSocketEvent);
 			commandMap.mapEvent(ClientSessionEvent.REGISTER, ClientSessionRegisterCommand, ClientSessionEvent);
-			commandMap.mapEvent(TelemetryFileEvent.LOAD, TelemetryFileLoadCommand, TelemetryFileEvent);
+			commandMap.mapEvent(ClientSessionEvent.SELECT_FILE, ClientSessionFileSelectCommand, ClientSessionEvent);
+			commandMap.mapEvent(ClientSessionEvent.LOAD_FILE, ClientSessionFileLoadCommand, ClientSessionEvent);
+			commandMap.mapEvent(ClientSessionEvent.SAVE_FILE, ClientSessionFileSaveCommand, ClientSessionEvent);
 			
 			injector.mapSingleton(ClientSessionProxy);
 			injector.mapSingleton(SocketService);

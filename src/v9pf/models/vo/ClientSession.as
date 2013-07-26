@@ -6,9 +6,6 @@ package v9pf.models.vo
 	import flash.events.EventDispatcher;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
-	import flash.filesystem.File;
-	import flash.filesystem.FileMode;
-	import flash.filesystem.FileStream;
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
 	
@@ -19,29 +16,26 @@ package v9pf.models.vo
 
 	public class ClientSession extends EventDispatcher
 	{
+		protected var _meta:ClientSessionMetadata;
 		protected var _socket:Socket;
-		
-		protected var file:File;
-		protected var fileStream:FileStream;
 		
 		protected var bytes:ByteArray;
 		protected var amf3:AMF3;
 		
 		protected var lastPos:uint;
-		protected var firstFrame:Boolean;
 		protected var timeEndCurrent:Number;
 		
 		protected var sessionItems:Vector.<TLMSessionItem>;
 		protected var frameIndices:Vector.<uint>;
 		
-		public function ClientSession(socket:Socket = null)
+		public function ClientSession(meta:ClientSessionMetadata, socket:Socket = null)
 		{
 			_socket = socket;
+			_meta = meta;
 			
 			bytes = new ByteArray();
 			amf3 = new AMF3();
 			lastPos = 0;
-			firstFrame = true;
 			timeEndCurrent = 0;
 			
 			sessionItems = new Vector.<TLMSessionItem>();
@@ -58,6 +52,11 @@ package v9pf.models.vo
 		public function get numFrames():uint
 		{
 			return frameIndices.length;
+		}
+		
+		public function get meta():ClientSessionMetadata
+		{
+			return _meta;
 		}
 		
 		public function get socket():Socket
@@ -81,6 +80,14 @@ package v9pf.models.vo
 			processBytes();
 		}
 
+		public function readBytes(ba:ByteArray):void
+		{
+			var pos:uint = bytes.position;
+			bytes.position = 0;
+			bytes.readBytes(ba);
+			bytes.position = pos;
+		}
+
 		public function close():void
 		{
 			try {
@@ -89,7 +96,6 @@ package v9pf.models.vo
 			}
 			catch (e:Error) {
 			}
-			archiveStop();
 		}
 		
 		protected function addListeners():void
@@ -143,7 +149,6 @@ package v9pf.models.vo
 					trace(e);
 				}
 			}
-			archive(oldPos, lastPos);
 		}
 		
 		protected function processObject(obj:Object):void
@@ -155,9 +160,8 @@ package v9pf.models.vo
 				tlm.timeBegin = timeEndCurrent - tlm.timeTotal;
 				tlm.timeEnd = timeEndCurrent;
 				addItem(tlm);
-				//trace(tlm);
 			} else {
-				trace("Unable to create session item: " + JSON.stringify(obj));
+				trace("ClientSession - unable to create session item: " + JSON.stringify(obj));
 			}
 		}
 		
@@ -198,41 +202,8 @@ package v9pf.models.vo
 		protected function newFrame():void
 		{
 			frameIndices.push(sessionItems.length);
-			dispatchEvent(new ClientSessionEvent(ClientSessionEvent.NEW_FRAME, this));
+			dispatchEvent(new ClientSessionEvent(ClientSessionEvent.RECEIVED_FRAME, this));
 			//trace(sessionItems.slice(frameIndices.length > 1 ? frameIndices[frameIndices.length - 2] : 0).join("\n"));
-			if (firstFrame) {
-				firstFrame = false;
-				archiveStart();
-			}
-		}
-		
-		protected function archiveStart():void
-		{
-			if (socket) {
-				file = File.createTempFile();
-				fileStream = new FileStream();
-				fileStream.openAsync(file, FileMode.WRITE);
-			}
-		}
-		
-		protected function archive(from:uint, to:uint):void
-		{
-			if (socket && file && fileStream) {
-				fileStream.writeBytes(bytes, from, to - from);
-			}
-		}
-		
-		protected function archiveStop():void
-		{
-			if (socket && file && fileStream) {
-				fileStream.addEventListener(Event.CLOSE, fileStreamCloseHandler);
-				fileStream.close();
-			}
-		}
-		
-		protected function fileStreamCloseHandler(event:Event):void
-		{
-			// TODO: rename, move, store metadata
 		}
 	}
 }

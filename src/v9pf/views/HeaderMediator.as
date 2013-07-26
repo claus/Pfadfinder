@@ -2,8 +2,8 @@ package v9pf.views
 {
 	import org.robotlegs.mvcs.Mediator;
 	
+	import v9pf.events.ClientSessionEvent;
 	import v9pf.events.ServerSocketEvent;
-	import v9pf.events.TelemetryFileEvent;
 	import v9pf.views.events.HeaderViewEvent;
 
 	public class HeaderMediator extends Mediator
@@ -30,7 +30,7 @@ package v9pf.views
 
 		protected function loadBtnClickHandler(event:HeaderViewEvent):void
 		{
-			dispatch(new TelemetryFileEvent(TelemetryFileEvent.LOAD));
+			dispatch(new ClientSessionEvent(ClientSessionEvent.SELECT_FILE));
 		}
 		
 		protected function socketBtnToggleHandler(event:HeaderViewEvent):void

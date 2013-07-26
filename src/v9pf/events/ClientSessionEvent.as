@@ -7,12 +7,16 @@ package v9pf.events
 	public class ClientSessionEvent extends Event
 	{
 		public static const CLOSED:String = "ClientSessionEvent_CLOSED";
-		public static const NEW_FRAME:String = "ClientSessionEvent_NEW_FRAME";
+		public static const RECEIVED_FRAME:String = "ClientSessionEvent_RECEIVED_FRAME";
+
 		public static const REGISTER:String = "ClientSessionEvent_REGISTER";
+		public static const SELECT_FILE:String = "ClientSessionEvent_SELECT_FILE";
+		public static const LOAD_FILE:String = "ClientSessionEvent_LOAD_FILE";
+		public static const SAVE_FILE:String = "ClientSessionEvent_SAVE_FILE";
 		
 		public var session:ClientSession;
 		
-		public function ClientSessionEvent(type:String, session:ClientSession, bubbles:Boolean = false, cancelable:Boolean = false)
+		public function ClientSessionEvent(type:String, session:ClientSession = null, bubbles:Boolean = false, cancelable:Boolean = false)
 		{
 			super(type, bubbles, cancelable);
 			this.session = session;

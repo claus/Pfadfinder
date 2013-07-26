@@ -23,6 +23,17 @@ package v9pf.models
 		{
 			sessions.unshift(session);
 			trace("ClientSessionProxy - session registered");
+			//trace(session.getSessionItems(0).join("\n"));
+		}
+		
+		public function getSessionByFilename(filePath:String):ClientSession
+		{
+			for each(var session:ClientSession in sessions) {
+				if (session.meta.filePath == filePath) {
+					return session;
+				}
+			}
+			return null;
 		}
 	}
 }

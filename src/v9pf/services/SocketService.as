@@ -7,10 +7,13 @@ package v9pf.services
 	import flash.filesystem.FileStream;
 	import flash.net.ServerSocket;
 	import flash.net.Socket;
+	import flash.utils.clearTimeout;
+	import flash.utils.setTimeout;
 	
 	import org.robotlegs.mvcs.Actor;
 	
 	import v9pf.events.ClientSessionEvent;
+	import v9pf.events.ServerSocketEvent;
 	import v9pf.models.vo.ClientSession;
 	import v9pf.models.vo.ClientSessionMetadata;
 	
@@ -19,6 +22,9 @@ package v9pf.services
 		private var serverSocket:ServerSocket;
 		
 		private var sessions:Vector.<ClientSession>;
+		
+		private var connectionAttempts:uint = 0;
+		private var connectionAttemptTimeoutID:uint = 0;
 		
 		private static const CONF_FILE:String = ".telemetry.cfg";
 		
@@ -37,11 +43,18 @@ package v9pf.services
 					serverSocket.bind(7934, "127.0.0.1"); 
 					serverSocket.addEventListener(ServerSocketConnectEvent.CONNECT, connectHandler); 
 					serverSocket.addEventListener(Event.CLOSE, closeHandler); 
-					serverSocket.listen(); 
+					serverSocket.listen();
+					connectionAttempts = 0;
+					dispatch(new ServerSocketEvent(ServerSocketEvent.STARTED));
 				}
 				catch (e:Error) {
-					trace("SocketService START SOCKET failed:");
-					trace(e);
+					trace("SocketService START SOCKET failed:", e);
+					deleteConf();
+					if (++connectionAttempts < 60) {
+						connectionAttemptTimeoutID = setTimeout(start, 1000);
+					} else {
+						connectionAttempts = 0;
+					}
 				}
 			}
 		}
@@ -56,10 +69,11 @@ package v9pf.services
 					serverSocket.removeEventListener(ServerSocketConnectEvent.CONNECT, connectHandler); 
 					serverSocket.removeEventListener(Event.CLOSE, closeHandler); 
 					serverSocket = null;
+					clearTimeout(connectionAttemptTimeoutID);
+					dispatch(new ServerSocketEvent(ServerSocketEvent.STOPPED));
 				}
 				catch (e:Error) {
-					trace("SocketService STOP SOCKET failed:");
-					trace(e);
+					trace("SocketService STOP SOCKET failed:", e);
 				}
 			}
 			deleteConf();

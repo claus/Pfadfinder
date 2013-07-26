@@ -28,7 +28,7 @@ package
 			var buttonDummy:Button = new Button();
 
 			StyleManager.setComponentStyle(Button, "textFormat", new TextFormat("_sans", 12, 0x333333));
-			StyleManager.setComponentStyle(Button, "disabledTextFormat", new TextFormat("_sans", 12, 0x333333));
+			StyleManager.setComponentStyle(Button, "disabledTextFormat", new TextFormat("_sans", 12, 0xaaaaaa));
 			StyleManager.setComponentStyle(Label, "textFormat", new TextFormat("_sans", 12, 0x000000));
 			
 			context = new V9Context(this);

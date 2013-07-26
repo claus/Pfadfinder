@@ -22,6 +22,16 @@ package v9pf.views
 		{
 			super();
 		}
+
+		public function get btnSocketSelected():Boolean
+		{
+			return btnSocket.selected;
+		}
+		public function set btnSocketSelected(value:Boolean):void
+		{
+			btnSocket.selected = value;
+			btnSocket.enabled = true;
+		}
 		
 		override public function setSize(width:Number, height:Number):void
 		{
@@ -71,7 +81,10 @@ package v9pf.views
 
 		protected function btnSocketChangeHandler(event:Event):void
 		{
-			dispatchEvent(new HeaderViewEvent(HeaderViewEvent.SOCKET_BTN_TOGGLE, { selected: btnSocket.selected }));
+			var selected:Boolean = btnSocket.selected;
+			btnSocket.selected = !selected;
+			btnSocket.enabled = false;
+			dispatchEvent(new HeaderViewEvent(HeaderViewEvent.SOCKET_BTN_TOGGLE, { selected: selected }));
 		}
 		
 		protected function setButtonStyles(btn:Button):void
@@ -93,11 +106,11 @@ package v9pf.views
 			btn.setStyle("upIcon", ToggleButton_icon);
 			btn.setStyle("overIcon", ToggleButton_icon);
 			btn.setStyle("downIcon", ToggleButton_icon);
-			btn.setStyle("disabledIcon", ToggleButton_icon);
+			btn.setStyle("disabledIcon", ToggleButton_disabledIcon);
 			btn.setStyle("selectedUpIcon", ToggleButton_selectedIcon);
 			btn.setStyle("selectedOverIcon", ToggleButton_selectedIcon);
 			btn.setStyle("selectedDownIcon", ToggleButton_selectedIcon);
-			btn.setStyle("selectedDisabledIcon", ToggleButton_selectedIcon);
+			btn.setStyle("selectedDisabledIcon", ToggleButton_disabledIcon);
 			btn.setStyle("upSkin", Button_leftBorder_upSkin);
 			btn.setStyle("overSkin", Button_leftBorder_overSkin);
 			btn.setStyle("downSkin", Button_leftBorder_downSkin);
